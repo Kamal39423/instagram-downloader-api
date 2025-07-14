@@ -1,0 +1,134 @@
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+if (isset($_POST['url'])) {
+    $video_url = $_POST['url'];
+
+    echo "<script>document.getElementById('loading').style.display = 'block';</script>";
+
+    $curl = curl_init();
+
+    curl_setopt_array($curl, [
+        CURLOPT_URL => "https://snap-video3.p.rapidapi.com/download",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_POSTFIELDS => "url=" . urlencode($video_url),
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/x-www-form-urlencoded",
+            "x-rapidapi-host: snap-video3.p.rapidapi.com",
+            "x-rapidapi-key: 18a2c36f48msh460820f3850d0e4p194b10jsnceacab90cdca"
+        ],
+    ]);
+
+    $response = curl_exec($curl);
+    $err = curl_error($curl);
+
+    curl_close($curl);
+
+    echo "<script>document.getElementById('loading').style.display = 'none';</script>";
+
+    if ($err) {
+        echo "<p class='error'>cURL Error #: " . htmlspecialchars($err) . "</p>";
+    } else {
+        $data = json_decode($response, true);
+
+        if (!$data || !isset($data['medias'][0]['url'])) {
+            echo "<p class='error'>Invalid API response! Check API key and URL format.</p>";
+            echo "<pre>" . htmlspecialchars(json_encode($data, JSON_PRETTY_PRINT)) . "</pre>"; // Debugging
+        } else {
+            $download_link = htmlspecialchars($data['medias'][0]['url']);
+            echo "<h2>Download Your Video</h2>";
+            echo "<a href='" . $download_link . "' download class='download-btn'>Click Here to Download</a>";
+        }
+    }
+}
+?>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Reels Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            max-width: 400px;
+            width: 100%;
+        }
+        input[type='text'] {
+            width: calc(100% - 30px);
+            padding: 12px;
+            font-size: 16px;
+            margin: 10px 0;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            outline: none;
+        }
+        button {
+            padding: 12px 25px;
+            font-size: 18px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .download-btn {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+        .download-btn:hover {
+            background-color: #218838;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        #loading {
+            display: none;
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Instagram Reels Video Downloader</h1>
+    <form method="post">
+        <input type="text" name="url" placeholder="Enter Instagram Reel URL" required>
+        <br>
+        <button type="submit">Download</button>
+    </form>
+    <p id="loading">Processing your request...</p>
+</body>
+</html>
